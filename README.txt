@@ -26,4 +26,9 @@ parameters. An example would be to tune the regularization parameter lambda.
 
 END-NOTES
 ---------
-These codes function similarly to using sklearn regression functions.
+The regression functions similarly to using sklearn regression functions.
+
+
+FUTURE PLANS
+------------
+- Rigorous code for neural network (successfully coded on MATLAB, pending conversion to Python3)
