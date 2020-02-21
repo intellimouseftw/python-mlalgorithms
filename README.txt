@@ -4,21 +4,21 @@ Python Machine Learning Algorithms
 
 INTRODUCTION
 ------------
-grad_descent_linear contains the code that runs the linear regression using gradient descent
-algorithm to find the regression parameters.
+This is a personal project to create rigorous codes that run machine learning algorithms on 
+Python3, coded solely using numpy and pandas.
 
-grad_descent_logist will be used for logistic regression.
-
+Current progress of project:
+- Supports linear regression, logistic regression
+- Supports kfold validation
+- Supports regularization tuning
 
 USAGE
 -----
 Code is applicable to different data sets, data sets will have to be manually imported and
 manipulated by the user.
 
-Model accuracy is computed after the model parameters are obtained.
-
-The code splits the data into 3 sets, train, test and cross-validation. The split ratio can
-be user defined.
+Model accuracy is computed after the model parameters are obtained. K-fold validation is used
+to increase reliability of computed accuracy.
 
 Cross-validation data can be used for model accuracy comparisons against different hyper-
 parameters. An example would be to tune the regularization parameter lambda.
@@ -27,6 +27,3 @@ parameters. An example would be to tune the regularization parameter lambda.
 END-NOTES
 ---------
 These codes function similarly to using sklearn regression functions.
-
-Possible further improvements to the code would be to incorporate K-fold validation to achieve
-a better estimation of the model accuracy.
