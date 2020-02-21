@@ -324,8 +324,7 @@ def cont_2_categ(series):
 
 #####################################################################
 
-#initialize data
-
+#import data
 df = pd.read_csv(r"C:\Users\Jerron\Desktop\caschool.csv")
 df["testscr"] = df["testscr"].apply(cont_2_categ)
 
@@ -333,7 +332,9 @@ df["testscr"] = df["testscr"].apply(cont_2_categ)
 xlabel = ["calw_pct","el_pct","avginc","comp_stu","meal_pct"]
 ylabel = ["testscr"]
 
-#extract test data from data set
+#extract test data from data set 
+#----------------------------------------------------------------------
+#OPTIONAL IF TEST DATA IS STORED IN A SEPERATE FILE
 df_test = df.sample(frac=30/420,random_state = 1)
 df = df.drop(df_test.index)
 
@@ -341,11 +342,18 @@ sz_test = df_test.shape
 df_test_y = df_test[ylabel].values
 df_test_x = df_test[xlabel].values
 df_test_x = feature_scale(df_test_x)
+#----------------------------------------------------------------------
 
+#specify type of regression
 regtype = "logistic"
+
+#specify regularization parameter
 reglambda = 10
 
-kfoldreg(df,ylabel,xlabel,regtype,reglambda)
+#use "kfoldreg" function to perform regression with k-fold validation
+#NOTE: refer to kfoldreg function above for available input settings
+
+kfoldreg(df,ylabel,xlabel,regtype,reglambda,rand_s = 50)
 
 #########
 
