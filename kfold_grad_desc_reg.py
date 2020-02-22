@@ -18,14 +18,11 @@ import pandas as pd
 def linear_costfunc(reglambda,theta,x,y):
     
     h0 = theta.dot(np.transpose(x))
-    h0 = h0[:,None]
-    #np.transpose does not work with 1D array.
-    #Result from dot product gives a 1D array h0.
-    #Hence, use [:,None] to transpose instead
+    h0 = np.transpose(h0)
     
     sz = np.shape(x) 
     
-    jval = (1/(2*sz[0]))*sum(np.square(h0-y))+sum((reglambda/(2*sz[0]))*np.square(theta))
+    jval = (1/(2*sz[0]))*(np.square(h0-y)).sum()+((reglambda/(2*sz[0]))*(np.square(theta)).sum())
     #jval: cost value  
     
     grad = np.ones(sz[1])
@@ -33,13 +30,12 @@ def linear_costfunc(reglambda,theta,x,y):
     
     for i in range(0,sz[1],1):  
         if i == 0:
-            grad[i]=(1/sz[0])*sum(h0-y);
+            grad[i]=(1/sz[0])*((h0-y).sum());
         else:
-            grad[i]=(1/sz[0])*sum((np.transpose(h0-y)).dot(x[:,i]))-(reglambda/sz[0])*theta[i]
+            grad[i]=(1/sz[0])*(((np.transpose(h0-y)).dot(x[:,i])).sum())-(reglambda/sz[0])*theta[0,i]
     
-    print(grad," ",jval)
-                
     return(grad,jval)
+    
 
     
 def linear_graddsc(x,y,theta,a,reglambda):
@@ -57,9 +53,9 @@ def linear_graddsc(x,y,theta,a,reglambda):
         #gradstep[1] represents the cost or error value jval
         if i > 2:
             if jvallist[i]-jvallist[i-1] > 0 and jvallist[i-2]-jvallist[i-1] > 0: 
-                print("Regularization parameter: ",reglambda)
-                print("First guess of weights: ",init_theta)
-                print("Converged at the following weights: ",theta)
+                #print("Regularization parameter: ",reglambda)
+                #print("First guess of weights: ",init_theta)
+                #print("Converged at the following weights: ",theta)
                 return(theta)
                 break
             else:
@@ -77,9 +73,9 @@ def modeleva_linear(theta,df_x,df_y):
     #jval calculation for train data
     sz = np.shape(df_y)
     h0 = theta.dot(np.transpose(df_x))
-    h0 = h0[:,None]
+    h0 = np.transpose(h0)
     
-    err = sum(np.square(h0 - df_y))/sz[0]
+    err = (np.square(h0 - df_y)).sum()/sz[0]
     
     return(err)
 
@@ -92,15 +88,13 @@ def sigmoid(x):
 def logist_costfunc(reglambda,theta,x,y):
     
     thetax = theta.dot(np.transpose(x))
-    thetax = thetax[:,None]
-    #np.transpose does not work with 1D array.
-    #Result from dot product gives a 1D array h0.
-    #Hence, use [:,None] to transpose instead
+    thetax = np.transpose(thetax)
+
     h0 = sigmoid(thetax)
     
     sz = np.shape(x) 
     
-    jval = -(1/sz[0])*sum(y*np.log(h0)+(1-y)*np.log(1-h0))+sum((reglambda/(2*sz[0]))*np.square(theta))  
+    jval = -(1/sz[0])*((y*np.log(h0)).sum()+((1-y)*np.log(1-h0)).sum())+((reglambda/(2*sz[0]))*(np.square(theta)).sum())  
     #jval: cost value  
     
     grad = np.ones(sz[1])
@@ -108,9 +102,9 @@ def logist_costfunc(reglambda,theta,x,y):
     
     for i in range(0,sz[1],1):  
         if i == 0:
-            grad[i]=(1/sz[0])*sum(h0-y);
+            grad[i]=(1/sz[0])*((h0-y).sum());
         else:
-            grad[i]=(1/sz[0])*sum((np.transpose(h0-y)).dot(x[:,i]))-(reglambda/sz[0])*theta[i]
+            grad[i]=(1/sz[0])*(((np.transpose(h0-y)).dot(x[:,i])).sum())-(reglambda/sz[0])*theta[0,i]
     
     #print(grad," ",jval)
                 
@@ -149,9 +143,9 @@ def logist_graddsc(x,y,theta,a,reglambda):
         jvallist[i] = gradstep[1]   #gradstep[1] represents the cost or error value jval
         if i > 2:
             if jvallist[i]-jvallist[i-1] > 0 and jvallist[i-2]-jvallist[i-1] > 0: 
-                print("Regularization parameter: ",reglambda)
-                print("First guess of weights: ",init_theta)
-                print("Converged at the following weights: ",theta)
+                #print("Regularization parameter: ",reglambda)
+                #print("First guess of weights: ",init_theta)
+                #print("Converged at the following weights: ",theta)
                 return(theta)
                 break
             else:
@@ -165,21 +159,22 @@ def logist_graddsc(x,y,theta,a,reglambda):
 
 
 def modeleva_logistic(theta,df_x,df_y,log_threshold = 0.5):
+    #log_threshold can be adjusted for sensitivity vs specificity tuning
     
     #% of correct predictions
     sz = np.shape(df_y)
     
     thetax = theta.dot(np.transpose(df_x))
-    thetax = thetax[:,None]
+    thetax = np.transpose(thetax)
     h0 = sigmoid(thetax)
     h0 = log_round(h0, log_threshold)
     
-    incorr_pred = sum(abs(h0-df_y))
+    incorr_pred = (abs(h0-df_y)).sum()
     acc = 1 - (incorr_pred/sz[0])
     
     return(acc)
     
-def log_round(x,threshold):
+def log_round(x,threshold=0.5):
     
     #function to round up / round down sigmoid value according to a given threshold
     #threshold default value: 0.5
@@ -194,14 +189,40 @@ def log_round(x,threshold):
         
     return(x)
 
+
+def reg(df,xlabel,ylabel,regtype,reglambda,a=0.03):
+    df_y = df[ylabel].values
+    df_x = df[xlabel].values
+    avg_y = np.average(df_y)
+    
+    df_x = feature_scale(df_x)
+
+    sz_theta = len(xlabel)
+    theta = np.zeros([1,sz_theta+1], dtype = float)
+    theta[0,0] = avg_y
+    
+    if regtype == "logistic":
+        fin_theta = logist_graddsc(df_x,df_y,theta,a,reglambda)        
+        return(fin_theta)
+    elif regtype == "linear":
+        fin_theta = linear_graddsc(df_x,df_y,theta,a,reglambda)        
+        return(fin_theta)
+
 #####################################################################
-#HYPERPARAMETER OPTIMIZATION FUNCTIONS (WORK IN PROGRESS)
+#HYPERPARAMETER OPTIMIZATION FUNCTIONS 
+        
+        #(WORK IN PROGRESS)
+        
+        #(WORK IN PROGRESS)
+        
+        #(WORK IN PROGRESS)
+        
 def reg_optimization(range1,range2,a1,a2,regtype):
     accuracy_data = pd.DataFrame(np.ones(shape = (20,2),dtype = float),columns=["reglambda","crossvalid_acc"])
     #initialize pandas dataframe to store accuracy against reglambda values    
     i = 0
     if regtype == "logistic":    
-        for reglambda in range1:    
+        for reglambda in range1:
             theta = np.array([avg_y,0,0,0,0,0], dtype = float)
             fin_theta = logist_graddsc(df_train_x,df_train_y,theta,a1,reglambda)
             crossvalid_acc = modeleva_logistic(fin_theta,df_train_x,df_train_y,df_test_x,df_test_y,df_crossvalid_x,df_crossvalid_y)
@@ -231,6 +252,11 @@ def reg_optimization(range1,range2,a1,a2,regtype):
             accuracy_data["crossvalid_acc"].iloc[i] = crossvalid_acc
     print(accuracy_data)
 
+        #(WORK IN PROGRESS)
+        
+        #(WORK IN PROGRESS)
+        
+        #(WORK IN PROGRESS)
 
 ####################################################################
 #K-FOLD FUNCTIONS
@@ -250,7 +276,7 @@ def kfold(df,num_fold,rand_s):
     return data_sets
 
 
-def kfoldreg(df,ylabel,xlabel,regtype,reglambda,num_fold=10,rand_s=100,a=0.03):
+def kfoldreg(df,xlabel,ylabel,regtype,reglambda,num_fold=10,rand_s=100,a=0.03):
     
     #num_fold specifies number of folds (such that df_rows is divisible by num_fold without remainder)
     #default value set at 10.
@@ -261,8 +287,9 @@ def kfoldreg(df,ylabel,xlabel,regtype,reglambda,num_fold=10,rand_s=100,a=0.03):
     #execute kfold algorithm to split data into num_fold equal sets of data
     kfold_data = kfold(df,num_fold,rand_s)
     
-    crossvalidarr = np.ones(num_fold)
-    trainarr = np.ones(num_fold)
+    crossvalid_arr = np.ones(num_fold)
+    train_arr = np.ones(num_fold)
+    fin_theta_arr = {}
     
     for i in range(0,num_fold,1):
     #iteration within different train and test data sets for kfold validation
@@ -291,26 +318,42 @@ def kfoldreg(df,ylabel,xlabel,regtype,reglambda,num_fold=10,rand_s=100,a=0.03):
         
         #initialize theta as first guess
             
-        theta = np.array([avg_y,0,0,0,0,0], dtype = float)
+        sz_theta = len(xlabel)
+        theta = np.zeros([1,sz_theta+1], dtype = float)
+        theta[0,0] = avg_y
         
         #run gradient descent script and evaluate model accuracy
         
         if regtype == "logistic":
             fin_theta = logist_graddsc(df_train_x,df_train_y,theta,a,reglambda)        
-            crossvalidarr[i] = modeleva_logistic(fin_theta,df_train_x,df_train_y)
-            trainarr[i] = modeleva_logistic(fin_theta,df_crossvalid_x,df_crossvalid_y)
-        
+            crossvalid_arr[i] = modeleva_logistic(fin_theta,df_train_x,df_train_y)
+            train_arr[i] = modeleva_logistic(fin_theta,df_crossvalid_x,df_crossvalid_y)
+            fin_theta_arr["Model ",i] = fin_theta
+            
         elif regtype == "linear":
             fin_theta = linear_graddsc(df_train_x,df_train_y,theta,a,reglambda)        
-            crossvalidarr[i] = modeleva_linear(fin_theta,df_train_x,df_train_y)
-            trainarr[i] = modeleva_linear(fin_theta,df_crossvalid_x,df_crossvalid_y)     
+            crossvalid_arr[i] = modeleva_linear(fin_theta,df_train_x,df_train_y)
+            train_arr[i] = modeleva_linear(fin_theta,df_crossvalid_x,df_crossvalid_y)    
+            fin_theta_arr["Model ",i] = fin_theta
     
     #averaging out of accuracies in each kfold
-    avg_crossvalid_acc = np.average(crossvalidarr)
-    avg_train_acc = np.average(trainarr)
+    avg_crossvalid_acc = np.average(crossvalid_arr)
+    avg_train_acc = np.average(train_arr)
+    print("Regularization parameter: ",reglambda)
     
-    print("Overall train accuracy = ",avg_train_acc)
-    print("Overall cross validation accuracy = ",avg_crossvalid_acc)
+    if regtype == "logistic":
+        print("Overall train accuracy = ",avg_train_acc)
+        print("Overall cross validation accuracy = ",avg_crossvalid_acc)
+        print("Accuracy deviation =",abs(avg_train_acc-avg_crossvalid_acc))
+        print("Accuracy mean =",(avg_train_acc+avg_crossvalid_acc)/2)
+        #return(fin_theta_arr)
+    
+    if regtype == "linear":
+        print("Overall train error = ",avg_train_acc)
+        print("Overall cross validation error = ",avg_crossvalid_acc)
+        print("Error deviation =",abs(avg_train_acc-avg_crossvalid_acc))
+        print("Error mean =",(avg_train_acc+avg_crossvalid_acc)/2)
+        #return(fin_theta_arr)
 
 
 #####################################################################
@@ -324,36 +367,45 @@ def cont_2_categ(series):
 
 #####################################################################
 
-#import data
-df = pd.read_csv(r"C:\Users\Jerron\Desktop\caschool.csv")
-df["testscr"] = df["testscr"].apply(cont_2_categ)
+if __name__ == "__main__":
 
-#specify x and y columns in dataframe
-xlabel = ["calw_pct","el_pct","avginc","comp_stu","meal_pct"]
-ylabel = ["testscr"]
-
-#extract test data from data set 
-#----------------------------------------------------------------------
-#OPTIONAL IF TEST DATA IS STORED IN A SEPERATE FILE
-df_test = df.sample(frac=30/420,random_state = 1)
-df = df.drop(df_test.index)
-
-sz_test = df_test.shape
-df_test_y = df_test[ylabel].values
-df_test_x = df_test[xlabel].values
-df_test_x = feature_scale(df_test_x)
-#----------------------------------------------------------------------
-
-#specify type of regression
-regtype = "logistic"
-
-#specify regularization parameter
-reglambda = 10
-
-#use "kfoldreg" function to perform regression with k-fold validation
-#NOTE: refer to kfoldreg function above for available input settings
-
-kfoldreg(df,ylabel,xlabel,regtype,reglambda,rand_s = 50)
+    #import data
+    df = pd.read_csv(r"C:\Users\Jerron\Desktop\caschool.csv")
+    df["testscr"] = df["testscr"].apply(cont_2_categ)
+    
+    #specify x and y columns in dataframe
+    xlabel = ["calw_pct","el_pct","avginc","comp_stu","meal_pct"]
+    ylabel = ["testscr"]
+    
+    #extract test data from data set 
+    #----------------------------------------------------------------------
+    #OPTIONAL IF TEST DATA IS STORED IN A SEPERATE FILE
+    df_test = df.sample(frac=30/420,random_state = 1)
+    df = df.drop(df_test.index)
+    
+    sz_test = df_test.shape
+    df_test_y = df_test[ylabel].values
+    df_test_x = df_test[xlabel].values
+    df_test_x = feature_scale(df_test_x)
+    #----------------------------------------------------------------------
+    
+    #specify type of regression
+    regtype = "logistic"
+    
+    #specify regularization parameter
+    reglambda = 25
+    
+    #use "kfoldreg" function to perform regression with k-fold validation
+    #NOTE: refer to kfoldreg function above for available input settings
+    #Overall model accuracy can then be used to tune hyperparameters, in this
+    #case, to tune regularization parameter reglambda
+    
+    kfoldreg(df,xlabel,ylabel,regtype,reglambda,rand_s = 10,a=0.01)
+    
+    #After obtaining most optimum value for reglambda, perform regression again
+    #with entire train dataset to obtain final model parameters.
+    
+    model_param = reg(df,xlabel,ylabel,regtype,reglambda,a=0.01)
 
 #########
 
