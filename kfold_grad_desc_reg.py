@@ -33,7 +33,7 @@ def linear_costfunc(reglambda,theta,x,y):
             grad[i]=(1/sz[0])*((h0-y).sum());
         else:
             grad[i]=(1/sz[0])*(((np.transpose(h0-y)).dot(x[:,i])).sum())-(reglambda/sz[0])*theta[0,i]
-    
+    #print(jval)
     return(grad,jval)
     
 
@@ -44,26 +44,29 @@ def linear_graddsc(x,y,theta,a,reglambda):
     
     #perform gradient descent
     
-    numiter = 10000
-    jvallist = np.ones(numiter)
+    numiter = 1000000
+    jvallist = np.ones(3)
     
     for i in range(0,numiter,1):
         gradstep = linear_costfunc(reglambda,theta,x,y)
-        jvallist[i] = gradstep[1]   
+        jvallist[0] = jvallist[1]
+        jvallist[1] = jvallist[2]
+        jvallist[2] = gradstep[1]   
         #gradstep[1] represents the cost or error value jval
         if i > 2:
-            if jvallist[i]-jvallist[i-1] > 0 and jvallist[i-2]-jvallist[i-1] > 0: 
-                #print("Regularization parameter: ",reglambda)
-                #print("First guess of weights: ",init_theta)
-                #print("Converged at the following weights: ",theta)
+            if jvallist[2]-jvallist[1] > 0 and jvallist[0]-jvallist[1] > 0: 
+                print("Regularization parameter: ",reglambda)
+                print("First guess of weights: ",init_theta)
+                print("Converged at the following weights: ",theta)
+                print("______________________________________________")
                 return(theta)
                 break
             else:
                 theta = theta - a * gradstep[0] 
                 #gradstep[0] represents the gradient of each respective feature at the current point
         else:
-            theta = theta - a * gradstep[0]  
-            
+            theta = theta - a * gradstep[0]
+         
         if i == (numiter-1) :
             print("NOTE: Gradient Descent did not converge, try increasing number of iterations, changing learning rate, or reducing regularization parameter")
 
@@ -111,24 +114,6 @@ def logist_costfunc(reglambda,theta,x,y):
     return(grad,jval)
 
 
-def feature_scale(x):
-    #feature scaling via mean normalization
-    #ie. x1_norm = (x1-mean(x1))/SD(x1)
-    #Basically converting the x(i) variable into "Z",
-    #the standardised normalised variable
-    
-    sz = np.shape(x)
-    
-    for i in range(0,sz[1],1):
-        x[:,i] = (x[:,i] - np.mean(x[:,i]))/np.std(x[:,i])
-        
-    #appending of constant term
-    cons = np.ones(sz[0])
-    cons = cons[:,None]
-    x = np.insert(x,[0],cons,axis=1)
-    return(x)
-
-
 def logist_graddsc(x,y,theta,a,reglambda):
     
     init_theta = theta #to document initial theta guess
@@ -136,23 +121,27 @@ def logist_graddsc(x,y,theta,a,reglambda):
     #perform gradient descent
     
     numiter = 100000
-    jvallist = np.ones(numiter)
+    jvallist = np.ones(3)
     
     for i in range(0,numiter,1):
         gradstep = logist_costfunc(reglambda,theta,x,y)
-        jvallist[i] = gradstep[1]   #gradstep[1] represents the cost or error value jval
+        jvallist[0] = jvallist[1]
+        jvallist[1] = jvallist[2]
+        jvallist[2] = gradstep[1]
+        #gradstep[1] represents the cost or error value jval
         if i > 2:
-            if jvallist[i]-jvallist[i-1] > 0 and jvallist[i-2]-jvallist[i-1] > 0: 
-                #print("Regularization parameter: ",reglambda)
-                #print("First guess of weights: ",init_theta)
-                #print("Converged at the following weights: ",theta)
+            if jvallist[2]-jvallist[1] > 0 and jvallist[0]-jvallist[1] > 0: 
+                print("Regularization parameter: ",reglambda)
+                print("First guess of weights: ",init_theta)
+                print("Converged at the following weights: ",theta)
+                print("______________________________________________")
                 return(theta)
                 break
             else:
                 theta = theta - a * gradstep[0]
                 #gradstep[0] represents the gradient of each respective feature at the current point
         else:
-            theta = theta - a * gradstep[0]  
+            theta = theta - a * gradstep[0]
             
         if i == (numiter-1) :
             print("NOTE: Gradient Descent did not converge, try increasing number of iterations, changing learning rate, or reducing regularization parameter")
@@ -189,6 +178,28 @@ def log_round(x,threshold=0.5):
         
     return(x)
 
+
+####################################################################
+#GENERAL REGRESSION FUNCTIONS
+
+def feature_scale(x):
+    #feature scaling via mean normalization
+    #ie. x1_norm = (x1-mean(x1))/SD(x1)
+    #Basically converting the x(i) variable into "Z",
+    #the standardised normalised variable
+    
+    sz = np.shape(x)
+    
+    for i in range(0,sz[1],1):
+        if np.std(x[:,i]) != 0:
+            x[:,i] = (x[:,i] - np.mean(x[:,i]))/np.std(x[:,i])
+        
+    #appending of constant term
+    cons = np.ones(sz[0])
+    cons = cons[:,None]
+    x = np.insert(x,[0],cons,axis=1)
+    return(x)
+    
 
 def reg(df,xlabel,ylabel,regtype,reglambda,a=0.03):
     df_y = df[ylabel].values
@@ -306,6 +317,7 @@ def kfoldreg(df,xlabel,ylabel,regtype,reglambda,num_fold=10,rand_s=100,a=0.03):
         
         df_train_y = df_train[ylabel].values
         df_train_x = df_train[xlabel].values
+        
         avg_y = np.average(df_train_y)
         
         df_crossvalid_y = df_crossvalid[ylabel].values
@@ -346,6 +358,7 @@ def kfoldreg(df,xlabel,ylabel,regtype,reglambda,num_fold=10,rand_s=100,a=0.03):
         print("Overall cross validation accuracy = ",avg_crossvalid_acc)
         print("Accuracy deviation =",abs(avg_train_acc-avg_crossvalid_acc))
         print("Accuracy mean =",(avg_train_acc+avg_crossvalid_acc)/2)
+        print("______________________________________________")
         #return(fin_theta_arr)
     
     if regtype == "linear":
@@ -353,6 +366,7 @@ def kfoldreg(df,xlabel,ylabel,regtype,reglambda,num_fold=10,rand_s=100,a=0.03):
         print("Overall cross validation error = ",avg_crossvalid_acc)
         print("Error deviation =",abs(avg_train_acc-avg_crossvalid_acc))
         print("Error mean =",(avg_train_acc+avg_crossvalid_acc)/2)
+        print("______________________________________________")
         #return(fin_theta_arr)
 
 
@@ -407,6 +421,7 @@ if __name__ == "__main__":
     
     model_param = reg(df,xlabel,ylabel,regtype,reglambda,a=0.01)
 
+
 #########
 
 #cross-validation to find optimum regularization parameter
@@ -417,3 +432,10 @@ if __name__ == "__main__":
 #a2 = 0.03
 #regtype = "logistic"
 #reg_optimization(range1,range2,a1,a2,regtype)
+
+
+############################################################################
+
+
+
+    
