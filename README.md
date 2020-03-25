@@ -1,7 +1,7 @@
-## Python Machine Learning Algorithms
+# Python Machine Learning Algorithms
 
 
-INTRODUCTION
+Introduction
 ------------
 This is a personal project to create rigorous codes that run machine learning algorithms on 
 Python3, coded solely using numpy and pandas.
@@ -11,7 +11,7 @@ Current progress of project:
 - Supports kfold validation
 - Supports regularization tuning
 
-USAGE
+Usage
 -----
 Code is applicable to different data sets, data sets will have to be manually imported and
 manipulated by the user.
@@ -23,11 +23,11 @@ Cross-validation data can be used for model accuracy comparisons against differe
 parameters. An example would be to tune the regularization parameter lambda.
 
 
-END-NOTES
+End-Notes
 ---------
 The regression functions similarly to using sklearn regression functions.
 
 
-FUTURE PLANS
+Future Plans
 ------------
 - Rigorous code for neural network (successfully coded on MATLAB, pending conversion to Python3)
