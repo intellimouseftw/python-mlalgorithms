@@ -1,6 +1,5 @@
-##################################
-Python Machine Learning Algorithms
-##################################
+## Python Machine Learning Algorithms
+
 
 INTRODUCTION
 ------------
